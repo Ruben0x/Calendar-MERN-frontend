@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import { Calendar } from 'react-big-calendar';
 import 'react-big-calendar/lib/css/react-big-calendar.css';
 
@@ -10,18 +10,22 @@ import {
   Navbar,
 } from '../';
 import { getMessagesES, localizer } from '../../helpers';
-import { useCalendarStore, useUiStore } from '../../hooks';
+import { useAuthStore, useCalendarStore, useUiStore } from '../../hooks';
 
 export const CalendarPage = () => {
+  const { user } = useAuthStore();
   const { openDateModal } = useUiStore();
-  const { events, setActiveEvent } = useCalendarStore();
+  const { events, setActiveEvent, startLoadingEvents } = useCalendarStore();
   const [lastView, setLastView] = useState(
     localStorage.getItem('lastView') || 'week'
   );
 
-  const eventStyleGetter = () => {
+  const eventStyleGetter = (event) => {
+    const isMyEvent =
+      user.uid === event.user._id || user.uid === event.user.uid;
+
     const style = {
-      backgroundColor: '#347cf7',
+      backgroundColor: isMyEvent ? '#347cf7' : '#465660',
       borderRadius: '0px',
       opacity: 0.8,
       color: 'white',
@@ -40,6 +44,11 @@ export const CalendarPage = () => {
   const onViewChanged = (event) => {
     localStorage.setItem('lastView', event);
   };
+
+  useEffect(() => {
+    startLoadingEvents();
+  }, []);
+
   return (
     <>
       <Navbar />
